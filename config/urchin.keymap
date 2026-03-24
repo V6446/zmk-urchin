@@ -1,58 +1,59 @@
 /*
  * Urchin 34-key ZMK keymap
- * --------------------------------------------
+ * ============================================================
+ *
  * Summary
  * -------
  * This keymap is designed for:
  * - Windows
- * - Host keyboard layout: US-International
+ * - Host layout: US-International
  * - Base layout: Colemak-DH
  * - Portuguese typing support
  *
- * Main ideas:
- * - Base layer uses Colemak-DH.
- * - Letters on the base layer are tap-for-lowercase, hold-for-uppercase.
- * - Left outer thumb:
- *     tap once   -> sticky Symbols layer
- *     tap twice  -> sticky Accent layer
- *     hold       -> momentary Nav layer
- * - Left inner thumb:
- *     tap        -> Space
- *     hold       -> Left Shift
- * - Right inner thumb:
- *     tap        -> Enter
- *     hold       -> Left Ctrl
- * - Right outer thumb:
- *     tap        -> Backspace
- *     hold       -> Numbers layer
+ * Main ideas
+ * ----------
+ * 1. Base layer uses Colemak-DH.
+ * 2. Base letters are tap-for-lowercase, hold-for-uppercase.
+ * 3. Left outer thumb:
+ *      - tap once  -> sticky Symbols layer
+ *      - tap twice -> sticky Accent layer
+ *      - hold      -> momentary Nav layer
+ * 4. Left inner thumb:
+ *      - tap  -> Space
+ *      - hold -> Shift
+ * 5. Right inner thumb:
+ *      - tap  -> Enter
+ *      - hold -> Ctrl
+ * 6. Right outer thumb:
+ *      - tap  -> Backspace
+ *      - hold -> Numbers layer
+ * 7. Accent layer has direct accented outputs:
+ *      à á ã ç é ê õ ô
+ *    and each key behaves like:
+ *      - tap  -> lowercase accented letter
+ *      - hold -> uppercase accented letter
+ * 8. Accent combos are composers (dead keys), intended for
+ *    Windows with US-International active:
+ *      Q+W -> acute
+ *      W+F -> grave
+ *      P+B -> tilde
+ *      J+L -> circumflex
+ * 9. Bluetooth layer is entered from the Nav layer.
  *
- * Accent strategy:
- * - Accent layer has direct accented outputs.
- * - Those accent keys behave like the base alpha keys:
- *     tap  -> lowercase accented letter
- *     hold -> uppercase accented letter
- * - Accent combos are composers (dead keys), intended for US-International:
- *     Q+W -> acute
- *     W+F -> grave
- *     P+B -> tilde
- *     J+L -> circumflex
- *
- * Bluetooth:
- * - A Bluetooth layer is kept.
- * - It is entered from the Nav layer.
- *
- * Windows-specific notes:
- * - Direct accent outputs use Windows Alt codes.
+ * Notes
+ * -----
+ * - Direct accent keys use Windows Alt codes.
  * - Screenshot sends Win+Shift+S.
+ * - This version avoids French keycode names.
  */
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 
-/* -----------------------------
+/* ============================================================
  * Layer numbers
- * ----------------------------- */
+ * ============================================================ */
 #define BASE    0
 #define SYM     1
 #define NUM     2
@@ -63,36 +64,33 @@
 / {
     behaviors {
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * td_sym_acc
-         * ----------
-         * Tap dance used by the left outer thumb.
-         *
-         * Tap once  -> sticky Symbols layer
-         * Tap twice -> sticky Accent layer
-         *
-         * This behavior itself does not handle "hold".
-         * Hold is added by wrapping this tap-dance inside a custom
-         * hold-tap behavior below.
-         * --------------------------------------------------------- */
-        td_sym_acc: tap_dance_sym_acc {
+         * --------------------------------------------------------
+         * Tap dance for the left outer thumb:
+         *   1 tap  -> sticky Symbols layer
+         *   2 taps -> sticky Accent layer
+         */
+        td_sym_acc: td_sym_acc {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
             tapping-term-ms = <220>;
             bindings = <&sl SYM>, <&sl ACCENT>;
         };
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * thumb_nav_sym_acc
-         * -----------------
-         * Custom hold-tap for the left outer thumb.
+         * --------------------------------------------------------
+         * Left outer thumb behavior:
+         *   hold -> momentary Nav layer
+         *   tap  -> td_sym_acc
          *
-         * Hold -> momentary Nav layer
-         * Tap  -> the td_sym_acc tap-dance above
+         * Invocation pattern:
+         *   &thumb_nav_sym_acc NAV 0
          *
-         * Because tap-dance takes no parameter, we pass a dummy 0
-         * when this behavior is used in the keymap.
-         * --------------------------------------------------------- */
+         * The first argument goes to &mo (the NAV layer number).
+         * The second is a dummy placeholder for the tap side.
+         */
         thumb_nav_sym_acc: thumb_nav_sym_acc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -102,16 +100,16 @@
             bindings = <&mo>, <&td_sym_acc>;
         };
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * alpha_up
-         * --------
-         * Generic base-layer alpha behavior:
-         * tap  -> lowercase letter
-         * hold -> uppercase letter (via Shift+letter)
+         * --------------------------------------------------------
+         * Generic alpha hold-tap:
+         *   tap  -> lowercase key
+         *   hold -> uppercase key (Shift + key)
          *
          * Example:
          *   &alpha_up LS(A) A
-         * --------------------------------------------------------- */
+         */
         alpha_up: alpha_up {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -121,16 +119,16 @@
             bindings = <&kp>, <&kp>;
         };
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * thumb_mod_key
-         * -------------
-         * Generic thumb mod-tap style behavior for:
-         * - Shift / Space
-         * - Ctrl / Enter
+         * --------------------------------------------------------
+         * Generic thumb mod-tap:
+         *   hold -> modifier
+         *   tap  -> normal key
          *
          * Example:
          *   &thumb_mod_key LSHIFT SPACE
-         * --------------------------------------------------------- */
+         */
         thumb_mod_key: thumb_mod_key {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -140,20 +138,24 @@
             bindings = <&kp>, <&kp>;
         };
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * Accent hold-taps
-         * ----------------
-         * These are direct accent keys for the Accent layer.
-         * Each one:
-         * - taps lowercase via a macro
-         * - holds uppercase via a macro
+         * --------------------------------------------------------
+         * These are used on the Accent layer.
+         * Each is:
+         *   tap  -> lowercase accented output
+         *   hold -> uppercase accented output
          *
-         * Since both hold and tap behaviors are no-parameter macros,
-         * these custom hold-taps need no parameters when used.
-         * --------------------------------------------------------- */
+         * Important:
+         * zmk,behavior-hold-tap requires #binding-cells = <2>,
+         * even when the underlying macros take no arguments.
+         * So these are called in the keymap as:
+         *   &acc_agrave 0 0
+         */
+
         acc_agrave: acc_agrave {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -162,7 +164,7 @@
 
         acc_aacute: acc_aacute {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -171,7 +173,7 @@
 
         acc_atilde: acc_atilde {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -180,7 +182,7 @@
 
         acc_ccedil: acc_ccedil {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -189,7 +191,7 @@
 
         acc_eacute: acc_eacute {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -198,7 +200,7 @@
 
         acc_ecirc: acc_ecirc {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -207,7 +209,7 @@
 
         acc_otilde: acc_otilde {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -216,7 +218,7 @@
 
         acc_ocirc: acc_ocirc {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <260>;
             quick-tap-ms = <180>;
@@ -226,10 +228,11 @@
 
     macros {
 
-        /* ---------------------------------------------------------
-         * Windows helper: screenshot tool
-         * Sends Win+Shift+S
-         * --------------------------------------------------------- */
+        /* --------------------------------------------------------
+         * screenshot_tool
+         * --------------------------------------------------------
+         * Sends Win + Shift + S
+         */
         screenshot_tool: screenshot_tool {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
@@ -244,23 +247,17 @@
                 ;
         };
 
-        /* ---------------------------------------------------------
+        /* --------------------------------------------------------
          * Accent composers for combos
-         * ---------------------------
-         * These send dead keys intended for Windows US-International.
+         * --------------------------------------------------------
+         * These rely on Windows US-International.
          *
-         * acute      -> apostrophe
-         * grave      -> grave
-         * tilde      -> tilde
-         * circumflex -> caret
-         *
-         * Then the next typed letter should combine on the host side.
-         * Example:
-         * - acute + a -> á
-         * - grave + a -> à
-         * - tilde + o -> õ
-         * - circumflex + e -> ê
-         * --------------------------------------------------------- */
+         * Q+W -> acute      -> apostrophe
+         * W+F -> grave      -> grave
+         * P+B -> tilde      -> Shift+grave
+         * J+L -> circumflex -> Shift+6
+         */
+
         comp_acute: comp_acute {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
@@ -282,7 +279,7 @@
             #binding-cells = <0>;
             wait-ms = <15>;
             tap-ms = <15>;
-            bindings = <&macro_tap &kp TILDE>;
+            bindings = <&macro_tap &kp LS(GRAVE)>;
         };
 
         comp_circ: comp_circ {
@@ -290,16 +287,14 @@
             #binding-cells = <0>;
             wait-ms = <15>;
             tap-ms = <15>;
-            bindings = <&macro_tap &kp CARET>;
+            bindings = <&macro_tap &kp LS(N6)>;
         };
 
-        /* ---------------------------------------------------------
-         * Windows Alt-code output macros
-         * ------------------------------
-         * These are used for the Accent layer direct outputs.
-         *
-         * They are Windows-specific by design.
-         * --------------------------------------------------------- */
+        /* --------------------------------------------------------
+         * Direct Windows Alt-code outputs for Accent layer
+         * --------------------------------------------------------
+         * These are Windows-specific by design.
+         */
 
         /* à / À */
         out_agrave: out_agrave {
@@ -505,17 +500,10 @@
     combos {
         compatible = "zmk,combos";
 
-        /* ---------------------------------------------------------
-         * Combo tuning
-         * ------------
-         * timeout-ms:
-         *   How close together the combo presses must be.
-         *
-         * require-prior-idle-ms:
-         *   Helps reduce accidental activation during normal rolls.
-         * --------------------------------------------------------- */
+        /* --------------------------------------------------------
+         * Accent composer combos on BASE only
+         * -------------------------------------------------------- */
 
-        /* Accent composer combos on BASE only */
         combo_comp_acute {
             timeout-ms = <35>;
             require-prior-idle-ms = <120>;
@@ -548,7 +536,10 @@
             layers = <BASE>;
         };
 
-        /* Utility combos on BASE only */
+        /* --------------------------------------------------------
+         * Utility combos on BASE only
+         * -------------------------------------------------------- */
+
         combo_semicolon {
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
@@ -561,7 +552,7 @@
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
             key-positions = <9 29>;      /* ' + ? */
-            bindings = <&kp EXCL>;
+            bindings = <&kp LS(N1)>;
             layers = <BASE>;
         };
 
@@ -577,150 +568,85 @@
     keymap {
         compatible = "zmk,keymap";
 
-        /* =========================================================
+        /* ========================================================
          * BASE LAYER
-         * ---------------------------------------------------------
-         * Colemak-DH, Base B version
-         *
-         * Top row:    Q W F P B   J L U Y '
-         * Home row:   A R S T G   M N E I O
-         * Bottom row: Z X C D V   K H , . ?
-         *
-         * Thumbs:
-         * - Left outer : tap Symbols, double tap Accent, hold Nav
-         * - Left inner : Space / Shift
-         * - Right inner: Enter / Ctrl
-         * - Right outer: Backspace / Numbers
-         * ========================================================= */
+         * ======================================================== */
         base_layer {
             display-name = "Base";
             bindings = <
                 &alpha_up LS(Q) Q    &alpha_up LS(W) W    &alpha_up LS(F) F    &alpha_up LS(P) P    &alpha_up LS(B) B      &alpha_up LS(J) J    &alpha_up LS(L) L    &alpha_up LS(U) U    &alpha_up LS(Y) Y    &kp SQT
                 &alpha_up LS(A) A    &alpha_up LS(R) R    &alpha_up LS(S) S    &alpha_up LS(T) T    &alpha_up LS(G) G      &alpha_up LS(M) M    &alpha_up LS(N) N    &alpha_up LS(E) E    &alpha_up LS(I) I    &alpha_up LS(O) O
-                &alpha_up LS(Z) Z    &alpha_up LS(X) X    &alpha_up LS(C) C    &alpha_up LS(D) D    &alpha_up LS(V) V      &alpha_up LS(K) K    &alpha_up LS(H) H    &kp COMMA            &kp DOT              &kp QMARK
+                &alpha_up LS(Z) Z    &alpha_up LS(X) X    &alpha_up LS(C) C    &alpha_up LS(D) D    &alpha_up LS(V) V      &alpha_up LS(K) K    &alpha_up LS(H) H    &kp COMMA            &kp DOT              &kp LS(FSLH)
 
                                                &thumb_nav_sym_acc NAV 0    &thumb_mod_key LSHIFT SPACE    &thumb_mod_key LCTRL ENTER    &lt NUM BSPC
             >;
         };
 
-        /* =========================================================
+        /* ========================================================
          * SYMBOLS LAYER
-         * ---------------------------------------------------------
-         * General punctuation and symbols.
-         * Entered by:
-         * - tap once on left outer thumb (sticky)
-         * ========================================================= */
+         * ======================================================== */
         symbols_layer {
             display-name = "Sym";
             bindings = <
-                &kp EXCL   &kp QMARK  &kp SQT    &kp DQT    &kp COLON      &kp LPAR   &kp RPAR   &kp LBKT   &kp RBKT   &kp BSLH
-                &kp SEMI   &kp COMMA  &kp DOT    &kp MINUS  &kp UNDER      &kp LT     &kp GT     &kp FSLH   &kp PIPE   &kp EQUAL
-                &kp AT     &kp HASH   &kp DLLR   &kp PRCNT  &kp PLUS       &kp AMPS   &kp STAR   &kp GRAVE  &kp TILDE  &kp CARET
+                &kp LS(N1)   &kp LS(FSLH) &kp SQT      &kp LS(SQT)   &kp LS(SEMI)    &kp LS(N9)   &kp LS(N0)   &kp LBKT     &kp RBKT     &kp BSLH
+                &kp SEMI     &kp COMMA    &kp DOT      &kp MINUS     &kp LS(MINUS)   &kp LS(COMMA)&kp LS(DOT)  &kp FSLH     &kp LS(BSLH) &kp EQUAL
+                &kp LS(N2)   &kp LS(N3)   &kp LS(N4)   &kp LS(N5)    &kp LS(EQUAL)   &kp LS(N7)   &kp LS(N8)   &kp GRAVE    &kp LS(GRAVE)&kp LS(N6)
 
                                           &trans   &trans   &trans   &trans
             >;
         };
 
-        /* =========================================================
+        /* ========================================================
          * NUMBERS LAYER
-         * ---------------------------------------------------------
-         * Staggered numpad on the right hand.
-         * The 7/4/1 column starts one column in from the thumb side.
-         *
-         * Right hand top:    / 7 8 9 *
-         * Right hand home:   | 4 5 6 :
-         * Right hand bottom: ~ 1 2 3 0
-         *
-         * Left hand holds math/grouping symbols.
-         * ========================================================= */
+         * ======================================================== */
         numbers_layer {
             display-name = "Num";
             bindings = <
-                &kp PLUS   &kp MINUS  &kp EQUAL  &kp LBKT   &kp RBKT       &kp FSLH   &kp N7     &kp N8     &kp N9     &kp STAR
-                &kp PRCNT  &kp CARET  &kp AMPS   &kp LBRC   &kp RBRC       &kp PIPE   &kp N4     &kp N5     &kp N6     &kp COLON
-                &kp LPAR   &kp RPAR   &kp LT     &kp GT     &kp UNDER      &kp TILDE  &kp N1     &kp N2     &kp N3     &kp N0
+                &kp LS(EQUAL) &kp MINUS    &kp EQUAL    &kp LBKT     &kp RBKT        &kp FSLH     &kp N7       &kp N8       &kp N9       &kp LS(N8)
+                &kp LS(N5)    &kp LS(N6)   &kp LS(N7)   &kp LS(LBKT) &kp LS(RBKT)    &kp LS(BSLH) &kp N4       &kp N5       &kp N6       &kp LS(SEMI)
+                &kp LS(N9)    &kp LS(N0)   &kp LS(COMMA)&kp LS(DOT)  &kp LS(MINUS)   &kp LS(GRAVE)&kp N1       &kp N2       &kp N3       &kp N0
 
                                           &trans   &trans   &trans   &trans
             >;
         };
 
-        /* =========================================================
+        /* ========================================================
          * NAV LAYER
-         * ---------------------------------------------------------
-         * Navigation, editing, screenshot, and entry to Bluetooth.
-         *
-         * Access:
-         * - hold left outer thumb
-         *
-         * Arrow cluster on right-hand home row:
-         * Left Down Up Right
-         *
-         * Bluetooth layer:
-         * - "BT" key here uses &to BT
-         * - BT layer includes a key to return to BASE
-         * ========================================================= */
+         * ======================================================== */
         nav_layer {
             display-name = "Nav";
             bindings = <
-                &kp ESC    &kp LGUI   &kp LALT   &kp LSHIFT &kp TAB        &kp HOME   &kp PG_UP  &none      &kp END    &kp DEL
-                &kp LC(Z)  &kp LC(X)  &kp LC(C)  &kp LC(V)  &caps_word     &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp BSPC
-                &screenshot_tool &kp INS &kp K_APP &to BT   &none          &kp C_PREV &kp C_PP   &kp C_NEXT &kp PG_DN  &kp CAPS
+                &kp ESC         &kp LGUI   &kp LALT   &kp LSHIFT &kp TAB       &kp HOME   &kp PG_UP  &none      &kp END    &kp DEL
+                &kp LC(Z)       &kp LC(X)  &kp LC(C)  &kp LC(V)  &caps_word    &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp BSPC
+                &screenshot_tool &kp INS   &none      &to BT     &none         &kp C_PREV &kp C_PP   &kp C_NEXT &kp PG_DN  &kp CAPS
 
                                           &trans   &trans   &trans   &trans
             >;
         };
 
-        /* =========================================================
+        /* ========================================================
          * ACCENT LAYER
-         * ---------------------------------------------------------
-         * Direct Portuguese accented outputs.
-         *
-         * Each accent key:
-         * - tap  -> lowercase accent
-         * - hold -> uppercase accent
-         *
-         * Access:
-         * - double tap left outer thumb (sticky)
-         *
-         * This layer is intentionally sparse so it is easier to learn.
-         * ========================================================= */
+         * ======================================================== */
         accent_layer {
             display-name = "Acc";
             bindings = <
-                &acc_agrave  &acc_aacute  &acc_atilde  &acc_ccedil  &none       &acc_eacute  &acc_ecirc  &acc_otilde  &acc_ocirc  &none
-                &none        &none        &none        &none        &none       &none        &none       &none        &none       &none
-                &none        &none        &none        &none        &none       &none        &none       &none        &none       &kp ENTER
+                &acc_agrave 0 0   &acc_aacute 0 0   &acc_atilde 0 0   &acc_ccedil 0 0   &none              &acc_eacute 0 0   &acc_ecirc 0 0   &acc_otilde 0 0   &acc_ocirc 0 0   &none
+                &none             &none             &none             &none             &none              &none             &none            &none              &none            &none
+                &none             &none             &none             &none             &none              &none             &none            &none              &none            &kp ENTER
 
-                                          &trans   &trans   &trans   &trans
+                                                     &trans   &trans   &trans   &trans
             >;
         };
 
-        /* =========================================================
+        /* ========================================================
          * BLUETOOTH LAYER
-         * ---------------------------------------------------------
-         * Device switching and firmware utility layer.
-         *
-         * Entered from Nav via:
-         * - &to BT
-         *
-         * Return:
-         * - top-left key: &to BASE
-         *
-         * BT_SEL 0..5:
-         * - switch to Bluetooth profile 0 through 5
-         *
-         * BT_CLR:
-         * - clear Bluetooth bonds
-         *
-         * bootloader:
-         * - enter firmware flashing mode
-         * ========================================================= */
+         * ======================================================== */
         bluetooth_layer {
             display-name = "BT";
             bindings = <
-                &to BASE     &bt BT_CLR   &bootloader  &none         &none      &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none
-                &none        &none        &none        &none         &none      &bt BT_SEL 4 &bt BT_SEL 5 &none        &none        &none
-                &none        &none        &none        &none         &none      &none        &none        &none        &none        &none
+                &to BASE     &bt BT_CLR   &bootloader  &none   &none      &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none
+                &none        &none        &none        &none   &none      &bt BT_SEL 4 &bt BT_SEL 5 &none        &none        &none
+                &none        &none        &none        &none   &none      &none        &none        &none        &none        &none
 
                                           &trans   &trans   &trans   &trans
             >;
