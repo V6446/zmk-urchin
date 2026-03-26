@@ -32,13 +32,18 @@
  *    and each key behaves like:
  *      - tap  -> lowercase accented letter
  *      - hold -> uppercase accented letter
- * 8. Accent combos are composers (dead keys), intended for
+ * 8. Accent combos are composers, intended for
  *    Windows with US-International active:
  *      Q+W -> acute
  *      W+F -> grave
  *      P+B -> tilde
  *      J+L -> circumflex
- * 9. Bluetooth layer is entered from the Nav layer.
+ * 9. Settings layer:
+ *      - entered by pressing both left thumbs together
+ *      - also reachable from Nav
+ *      - contains bootloader, BT profile switching, etc.
+ * 10. Accent combo access:
+ *      - both right thumbs together -> sticky Accent layer
  *
  * Notes
  * -----
@@ -50,13 +55,14 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
 
-#define BASE    0
-#define SYM     1
-#define NUM     2
-#define NAV     3
-#define ACCENT  4
-#define BT      5
+#define BASE     0
+#define SYM      1
+#define NUM      2
+#define NAV      3
+#define ACCENT   4
+#define SETTINGS 5
 
 / {
     behaviors {
@@ -180,6 +186,18 @@
                 , <&macro_release &kp LSHIFT>
                 , <&macro_release &kp LGUI>
                 ;
+        };
+
+        /* Pressing all modifiers can help clear a "stuck modifier" state. */
+        unstick: unstick {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <
+                &kp LSHIFT &kp RSHIFT
+                &kp LCTRL  &kp RCTRL
+                &kp LALT   &kp RALT
+                &kp LGUI   &kp RGUI
+            >;
         };
 
         comp_acute: comp_acute {
@@ -410,10 +428,11 @@
     combos {
         compatible = "zmk,combos";
 
+        /* Accent composer combos on Base */
         combo_comp_acute {
             timeout-ms = <35>;
             require-prior-idle-ms = <120>;
-            key-positions = <0 1>;
+            key-positions = <0 1>;   /* Q + W */
             bindings = <&comp_acute>;
             layers = <BASE>;
         };
@@ -421,7 +440,7 @@
         combo_comp_grave {
             timeout-ms = <35>;
             require-prior-idle-ms = <120>;
-            key-positions = <1 2>;
+            key-positions = <1 2>;   /* W + F */
             bindings = <&comp_grave>;
             layers = <BASE>;
         };
@@ -429,7 +448,7 @@
         combo_comp_tilde {
             timeout-ms = <35>;
             require-prior-idle-ms = <120>;
-            key-positions = <3 4>;
+            key-positions = <3 4>;   /* P + B */
             bindings = <&comp_tilde>;
             layers = <BASE>;
         };
@@ -437,15 +456,16 @@
         combo_comp_circ {
             timeout-ms = <35>;
             require-prior-idle-ms = <120>;
-            key-positions = <5 6>;
+            key-positions = <5 6>;   /* J + L */
             bindings = <&comp_circ>;
             layers = <BASE>;
         };
 
+        /* Utility combos on Base */
         combo_semicolon {
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
-            key-positions = <27 28>;
+            key-positions = <27 28>; /* , + . */
             bindings = <&kp SEMI>;
             layers = <BASE>;
         };
@@ -453,7 +473,7 @@
         combo_exclamation {
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
-            key-positions = <9 29>;
+            key-positions = <9 29>;  /* ' + ? */
             bindings = <&kp LS(N1)>;
             layers = <BASE>;
         };
@@ -461,9 +481,23 @@
         combo_caps_word {
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
-            key-positions = <10 11>;
+            key-positions = <10 11>; /* A + R */
             bindings = <&caps_word>;
             layers = <BASE>;
+        };
+
+        /* Both left thumbs -> Settings layer */
+        combo_settings_layer {
+            timeout-ms = <200>;
+            key-positions = <30 31>;
+            bindings = <&to SETTINGS>;
+        };
+
+        /* Both right thumbs -> sticky Accent layer */
+        combo_accent_layer {
+            timeout-ms = <200>;
+            key-positions = <32 33>;
+            bindings = <&sl ACCENT>;
         };
     };
 
@@ -506,9 +540,9 @@
         nav_layer {
             display-name = "Nav";
             bindings = <
-                &kp ESC          &kp LGUI   &kp LALT   &kp LSHIFT &kp TAB       &kp HOME   &kp PG_UP  &none      &kp END    &kp DEL
-                &kp LC(Z)        &kp LC(X)  &kp LC(C)  &kp LC(V)  &caps_word    &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp BSPC
-                &screenshot_tool &kp INS    &none      &to BT     &none         &kp C_PREV &kp C_PP   &kp C_NEXT &kp PG_DN  &kp CAPS
+                &kp ESC          &kp LGUI   &kp LALT   &kp LSHIFT &kp TAB         &kp HOME   &kp PG_UP  &none      &kp END    &kp DEL
+                &kp LC(Z)        &kp LC(X)  &kp LC(C)  &kp LC(V)  &caps_word      &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp BSPC
+                &screenshot_tool &kp INS    &none      &to SETTINGS &none         &kp C_PREV &kp C_PP   &kp C_NEXT &kp PG_DN  &kp CAPS
 
                                           &trans   &trans   &trans   &trans
             >;
@@ -525,14 +559,14 @@
             >;
         };
 
-        bluetooth_layer {
-            display-name = "BT";
+        settings_layer {
+            display-name = "Sett";
             bindings = <
-                &to BASE     &bt BT_CLR   &bootloader  &none   &none      &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &none
-                &none        &none        &none        &none   &none      &bt BT_SEL 4 &bt BT_SEL 5 &none        &none        &none
-                &none        &none        &none        &none   &none      &none        &none        &none        &none        &none
+                &to BASE       &bootloader  &bt BT_CLR  &out OUT_USB  &out OUT_BLE     &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4
+                &none          &none        &unstick    &none         &none            &bt BT_SEL 5 &none        &none        &none        &none
+                &none          &none        &none       &none         &none            &none        &none        &none        &none        &none
 
-                                          &trans   &trans   &trans   &trans
+                                                &trans   &trans   &trans   &trans
             >;
         };
     };
