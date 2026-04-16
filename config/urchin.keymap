@@ -91,7 +91,7 @@
         };
 
         /* ACC_ACUTE  R : tap Á  | hold Ã */
-        ht_A_agudo: ht_A_agudo {
+        ht_a_agudo_uc: ht_a_agudo_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "tap-preferred";
@@ -111,7 +111,7 @@
         };
 
         /* ACC_ACUTE  ? : tap Ó  | hold Õ */
-        ht_O_agudo: ht_O_agudo {
+        ht_o_agudo_uc: ht_o_agudo_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "tap-preferred";
@@ -131,7 +131,7 @@
         };
 
         /* ACC_GRAVE  R : tap À  | hold Â */
-        ht_A_crase: ht_A_crase {
+        ht_a_crase_uc: ht_a_crase_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "tap-preferred";
@@ -649,8 +649,8 @@
             display-name = "Agudo";
             bindings = <
                 &none                &none                &none                &none                &none                   &none                &none                &out_uacute          &out_uacute_uc       &none
-                &ht_a_agudo 0 0      &ht_A_agudo 0 0      &none                &none                &none                   &none                &none                &out_eacute          &out_iacute          &ht_o_agudo 0 0
-                &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &out_eacute_uc       &out_iacute_uc       &ht_O_agudo 0 0
+                &ht_a_agudo 0 0      &ht_a_agudo_uc 0 0      &none                &none                &none                   &none                &none                &out_eacute          &out_iacute          &ht_o_agudo 0 0
+                &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &out_eacute_uc       &out_iacute_uc       &ht_o_agudo_uc 0 0
                 &trans               &trans                                                                                  &trans               &trans
             >;
         };
@@ -667,7 +667,7 @@
             display-name = "Crase";
             bindings = <
                 &none                &none                &none                &none                &none                   &none                &none                &none                &none                &none
-                &ht_a_crase 0 0      &ht_A_crase 0 0      &none                &none                &none                   &none                &none                &out_ecirc           &none                &out_ocirc
+                &ht_a_crase 0 0      &ht_a_crase_uc 0 0      &none                &none                &none                   &none                &none                &out_ecirc           &none                &out_ocirc
                 &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &none                &none                &none
                 &trans               &trans                                                                                  &trans               &trans
             >;
