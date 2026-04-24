@@ -11,16 +11,28 @@
  * ------
  * 0  BASE       Colemak-DH alphas
  * 1  MERGED     Nav + Numpad + Symbols (hold left outer thumb)
- * 2  ACC_ACUTE  Agudo / Til          (tap left outer thumb)
- * 3  ACC_GRAVE  Crase / Circunflexo  (double-tap position 29)
+ * 2  ACC_ACUTE  Agudo / Til          (tap left outer thumb once)
+ * 3  ACC_GRAVE  Crase / Circunflexo  (tap left outer thumb twice)
  * 4  BT         Bluetooth settings   (both left thumbs combo)
  *
  * Thumb cluster
  * -------------
- * Left outer  : tap → sticky Accent Acute | hold → momentary Merged
- * Left inner  : tap → Space               | hold → Ctrl
- * Right inner : tap → Enter               | hold → Shift
+ * Left outer  : tap 1x → sticky ACC_ACUTE
+ *               tap 2x → sticky ACC_GRAVE
+ *               hold   → momentary Merged
+ * Left inner  : tap → Space  | hold → Ctrl
+ * Right inner : tap → Enter  | hold → Shift
  * Right outer : Backspace (plain, repeatable)
+ *
+ * Combos (trigger: apostrophe, pos 9)
+ * ------------------------------------
+ * ' + J  → Mute
+ * ' + L  → Volume Down
+ * ' + U  → Volume Up
+ * ' + Y  → Lock Screen
+ * ' + I  → Screenshot
+ * ' + M  → Alt+Shift+Tab (app left)
+ * ' + N  → Alt+Tab (app right)
  */
 
 #include <behaviors.dtsi>
@@ -39,17 +51,25 @@
 
         /* ---- Thumb behaviours ---- */
 
-        /* Left outer thumb: hold → mo MERGED, tap → sl ACC_ACUTE */
+        /* Tap-dance for accent layers */
+        td_acc: td_acc {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <220>;
+            bindings = <&sl ACC_ACUTE>, <&sl ACC_GRAVE>;
+        };
+
+        /* Left outer thumb: hold → mo MERGED, tap → td_acc */
         thumb_layer_accent: thumb_layer_accent {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <220>;
             quick-tap-ms = <180>;
-            bindings = <&mo>, <&sl>;
+            bindings = <&mo>, <&td_acc>;
         };
 
-        /* Generic kp hold-tap (thumbs, symbols, brackets) */
+        /* Generic kp hold-tap (thumbs, symbols, brackets, arrows) */
         sym_ht: sym_ht {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -59,12 +79,12 @@
             bindings = <&kp>, <&kp>;
         };
 
-        /* Position 29 tap-dance: 1 tap → Tab/Win hold-tap, 2 taps → sl ACC_GRAVE */
-        td_tab_acc_grave: td_tab_acc_grave {
+        /* Tap-dance for comma: tap → comma/period ht, double-tap → semicolon */
+        td_comma: td_comma {
             compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
             tapping-term-ms = <220>;
-            bindings = <&sym_ht LGUI TAB>, <&sl ACC_GRAVE>;
+            bindings = <&sym_ht DOT COMMA>, <&kp SEMI>;
         };
 
         /* ---- Alpha hold-tap (260 ms) ---- */
@@ -80,7 +100,7 @@
 
         /* ---- Accent-layer hold-taps (260 ms) ---- */
 
-        /* ACC_ACUTE  A : tap á  | hold ã */
+        /* ACC_ACUTE  A pos 10 : tap á  | hold ã */
         ht_a_agudo: ht_a_agudo {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -90,7 +110,7 @@
             bindings = <&out_atilde>, <&out_aacute>;
         };
 
-        /* ACC_ACUTE  R : tap Á  | hold Ã */
+        /* ACC_ACUTE  R pos 11 : tap Á  | hold Ã */
         ht_a_agudo_uc: ht_a_agudo_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -100,7 +120,7 @@
             bindings = <&out_atilde_uc>, <&out_aacute_uc>;
         };
 
-        /* ACC_ACUTE  O : tap ó  | hold õ */
+        /* ACC_ACUTE  O pos 19 : tap ó  | hold õ */
         ht_o_agudo: ht_o_agudo {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -110,7 +130,7 @@
             bindings = <&out_otilde>, <&out_oacute>;
         };
 
-        /* ACC_ACUTE  ? : tap Ó  | hold Õ */
+        /* ACC_ACUTE  ? pos 29 : tap Ó  | hold Õ */
         ht_o_agudo_uc: ht_o_agudo_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -120,7 +140,7 @@
             bindings = <&out_otilde_uc>, <&out_oacute_uc>;
         };
 
-        /* ACC_GRAVE  A : tap à  | hold â */
+        /* ACC_GRAVE  A pos 10 : tap à  | hold â */
         ht_a_crase: ht_a_crase {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -130,7 +150,7 @@
             bindings = <&out_acirc>, <&out_agrave>;
         };
 
-        /* ACC_GRAVE  R : tap À  | hold Â */
+        /* ACC_GRAVE  R pos 11 : tap À  | hold Â */
         ht_a_crase_uc: ht_a_crase_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -381,6 +401,19 @@
                 ;
         };
 
+        /* Ê  Alt+0202 */
+        out_ecirc_uc: out_ecirc_uc {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <25>;
+            tap-ms = <25>;
+            bindings
+                = <&macro_press &kp LALT>
+                , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N0 &kp KP_N2>
+                , <&macro_release &kp LALT>
+                ;
+        };
+
         /* í  Alt+0237 */
         out_iacute: out_iacute {
             compatible = "zmk,behavior-macro";
@@ -472,6 +505,19 @@
                 ;
         };
 
+        /* Ô  Alt+0212 */
+        out_ocirc_uc: out_ocirc_uc {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <25>;
+            tap-ms = <25>;
+            bindings
+                = <&macro_press &kp LALT>
+                , <&macro_tap &kp KP_N0 &kp KP_N2 &kp KP_N1 &kp KP_N2>
+                , <&macro_release &kp LALT>
+                ;
+        };
+
         /* ú  Alt+0250 */
         out_uacute: out_uacute {
             compatible = "zmk,behavior-macro";
@@ -523,65 +569,65 @@
             layers = <BASE>;
         };
 
-        /* Mute — Tab/Win (29) + J (5) */
+        /* Mute — ' (9) + J (5) */
         combo_mute {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 5>;
+            key-positions = <9 5>;
             bindings = <&kp C_MUTE>;
             layers = <BASE>;
         };
 
-        /* Volume down — Tab/Win (29) + L (6) */
+        /* Volume down — ' (9) + L (6) */
         combo_vol_dn {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 6>;
+            key-positions = <9 6>;
             bindings = <&kp C_VOL_DN>;
             layers = <BASE>;
         };
 
-        /* Volume up — Tab/Win (29) + U (7) */
+        /* Volume up — ' (9) + U (7) */
         combo_vol_up {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 7>;
+            key-positions = <9 7>;
             bindings = <&kp C_VOL_UP>;
             layers = <BASE>;
         };
 
-        /* Lock screen — Tab/Win (29) + Y (8) */
+        /* Lock screen — ' (9) + Y (8) */
         combo_lock {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 8>;
+            key-positions = <9 8>;
             bindings = <&lock_screen>;
             layers = <BASE>;
         };
 
-        /* Screenshot — Tab/Win (29) + ' (9) */
+        /* Screenshot — ' (9) + I (18) */
         combo_screenshot {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 9>;
+            key-positions = <9 18>;
             bindings = <&screenshot_tool>;
             layers = <BASE>;
         };
 
-        /* App left — Tab/Win (29) + M (15) */
+        /* App left — ' (9) + M (15) */
         combo_app_left {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 15>;
+            key-positions = <9 15>;
             bindings = <&alt_shift_tab>;
             layers = <BASE>;
         };
 
-        /* App right — Tab/Win (29) + N (16) */
+        /* App right — ' (9) + N (16) */
         combo_app_right {
             timeout-ms = <50>;
             require-prior-idle-ms = <80>;
-            key-positions = <29 16>;
+            key-positions = <9 16>;
             bindings = <&alt_tab>;
             layers = <BASE>;
         };
@@ -607,15 +653,15 @@
          *  Q  W  F  P  B  |  J  L  U  Y  '
          *  A  R  S  T  G  |  M  N  E  I  O
          *  Z  X  C  D  V  |  K  H  ,. ?! Tab/Win
-         *    [ACC_ACU/MERGED] [SPC/Ctrl] | [ENT/Shft] [BSPC]
+         *   [ACC/MERGED] [SPC/Ctrl] | [ENT/Shft] [BSPC]
          * ------------------------------------------------------ */
         base_layer {
             display-name = "Base";
             bindings = <
                 &alpha_up LS(Q) Q    &alpha_up LS(W) W    &alpha_up LS(F) F    &alpha_up LS(P) P    &alpha_up LS(B) B       &alpha_up LS(J) J    &alpha_up LS(L) L    &alpha_up LS(U) U    &alpha_up LS(Y) Y    &kp SQT
                 &alpha_up LS(A) A    &alpha_up LS(R) R    &alpha_up LS(S) S    &alpha_up LS(T) T    &alpha_up LS(G) G       &alpha_up LS(M) M    &alpha_up LS(N) N    &alpha_up LS(E) E    &alpha_up LS(I) I    &alpha_up LS(O) O
-                &alpha_up LS(Z) Z    &alpha_up LS(X) X    &alpha_up LS(C) C    &alpha_up LS(D) D    &alpha_up LS(V) V       &alpha_up LS(K) K    &alpha_up LS(H) H    &sym_ht DOT COMMA    &sym_ht LS(N1) LS(FSLH)  &td_tab_acc_grave
-                &thumb_layer_accent MERGED ACC_ACUTE      &sym_ht LCTRL SPACE                                                &sym_ht LSHIFT ENTER &kp BSPC
+                &alpha_up LS(Z) Z    &alpha_up LS(X) X    &alpha_up LS(C) C    &alpha_up LS(D) D    &alpha_up LS(V) V       &alpha_up LS(K) K    &alpha_up LS(H) H    &td_comma              &sym_ht LS(N1) LS(FSLH)  &sym_ht LGUI TAB
+                &thumb_layer_accent MERGED 0              &sym_ht LCTRL SPACE                                                &sym_ht LSHIFT ENTER &kp BSPC
             >;
         };
 
@@ -623,16 +669,16 @@
          *  MERGED — Nav + Numpad + Symbols
          * --------------------------------------------------------
          *  Esc  PgUp PgDn  %    "   |  *   7   8   9   +
-         *  </>  {/}   ↑   [/]  (/) |  /   4   5   6   -
-         *  Ctrl  ←    ↓    →   =/@  |  _   1   2   3   0
+         *  </>  {/}  ↑/C↑ [/]  (/) |  /   4   5   6   -
+         *  Ctrl ←/C← ↓/C↓ →/C→ =/@  |  _   1   2   3   0
          *         [trans]  [trans]   | [trans] [trans]
          * ------------------------------------------------------ */
         merged_layer {
             display-name = "Merged";
             bindings = <
                 &kp ESC                      &kp PG_UP                    &kp PG_DN                    &kp LS(N5)                   &kp LS(SQT)                    &kp LS(N8)       &kp N7           &kp N8           &kp N9           &kp LS(EQUAL)
-                &sym_ht LS(DOT) LS(COMMA)    &sym_ht LS(RBKT) LS(LBKT)   &kp UP                       &sym_ht RBKT LBKT            &sym_ht LS(N0) LS(N9)          &kp FSLH         &kp N4           &kp N5           &kp N6           &kp MINUS
-                &kp LCTRL                    &kp LEFT                     &kp DOWN                     &kp RIGHT                    &sym_ht LS(N2) EQUAL           &kp LS(MINUS)    &kp N1           &kp N2           &kp N3           &kp N0
+                &sym_ht LS(DOT) LS(COMMA)    &sym_ht LS(RBKT) LS(LBKT)   &sym_ht LC(UP) UP            &sym_ht RBKT LBKT            &sym_ht LS(N0) LS(N9)          &kp FSLH         &kp N4           &kp N5           &kp N6           &kp MINUS
+                &kp LCTRL                    &sym_ht LC(LEFT) LEFT        &sym_ht LC(DOWN) DOWN        &sym_ht LC(RIGHT) RIGHT      &sym_ht LS(N2) EQUAL           &kp LS(MINUS)    &kp N1           &kp N2           &kp N3           &kp N0
                 &trans                       &trans                                                                                                                 &trans           &trans
             >;
         };
@@ -649,7 +695,7 @@
             display-name = "Agudo";
             bindings = <
                 &none                &none                &none                &none                &none                   &none                &none                &out_uacute          &out_uacute_uc       &none
-                &ht_a_agudo 0 0      &ht_a_agudo_uc 0 0      &none                &none                &none                   &none                &none                &out_eacute          &out_iacute          &ht_o_agudo 0 0
+                &ht_a_agudo 0 0      &ht_a_agudo_uc 0 0   &none                &none                &none                   &none                &none                &out_eacute          &out_iacute          &ht_o_agudo 0 0
                 &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &out_eacute_uc       &out_iacute_uc       &ht_o_agudo_uc 0 0
                 &trans               &trans                                                                                  &trans               &trans
             >;
@@ -667,7 +713,7 @@
             display-name = "Crase";
             bindings = <
                 &none                &none                &none                &none                &none                   &none                &none                &none                &none                &none
-                &ht_a_crase 0 0      &ht_a_crase_uc 0 0      &none                &none                &none                   &none                &none                &out_ecirc           &none                &out_ocirc
+                &ht_a_crase 0 0      &ht_a_crase_uc 0 0   &none                &none                &none                   &none                &none                &out_ecirc           &none                &out_ocirc
                 &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &none                &none                &none
                 &trans               &trans                                                                                  &trans               &trans
             >;
