@@ -13,7 +13,8 @@
  * 1  MERGED     Nav + Numpad + Symbols (hold left outer thumb)
  * 2  ACC_ACUTE  Agudo / Til          (tap left outer thumb once)
  * 3  ACC_GRAVE  Crase / Circunflexo  (tap left outer thumb twice)
- * 4  BT         Bluetooth settings   (both left thumbs combo)
+ * 4  SHORTCUT   Media / App switch   (hold apostrophe)
+ * 5  BT         Bluetooth settings   (both left thumbs combo)
  *
  * Thumb cluster
  * -------------
@@ -24,8 +25,8 @@
  * Right inner : tap → Enter  | hold → Shift
  * Right outer : Backspace (plain, repeatable)
  *
- * Combos (trigger: apostrophe, pos 9)
- * ------------------------------------
+ * Shortcut layer (hold apostrophe + key)
+ * ---------------------------------------
  * ' + J  → Mute
  * ' + L  → Volume Down
  * ' + U  → Volume Up
@@ -43,7 +44,8 @@
 #define MERGED    1
 #define ACC_ACUTE 2
 #define ACC_GRAVE 3
-#define BT        4
+#define SHORTCUT  4
+#define BT        5
 
 / {
 
@@ -130,7 +132,7 @@
             bindings = <&out_otilde>, <&out_oacute>;
         };
 
-        /* ACC_ACUTE  ? pos 29 : tap Ó  | hold Õ */
+        /* ACC_ACUTE  pos 29 : tap Ó  | hold Õ */
         ht_o_agudo_uc: ht_o_agudo_uc {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -569,69 +571,6 @@
             layers = <BASE>;
         };
 
-        /* Mute — ' (9) + J (5) */
-        combo_mute {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 5>;
-            bindings = <&kp C_MUTE>;
-            layers = <BASE>;
-        };
-
-        /* Volume down — ' (9) + L (6) */
-        combo_vol_dn {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 6>;
-            bindings = <&kp C_VOL_DN>;
-            layers = <BASE>;
-        };
-
-        /* Volume up — ' (9) + U (7) */
-        combo_vol_up {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 7>;
-            bindings = <&kp C_VOL_UP>;
-            layers = <BASE>;
-        };
-
-        /* Lock screen — ' (9) + Y (8) */
-        combo_lock {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 8>;
-            bindings = <&lock_screen>;
-            layers = <BASE>;
-        };
-
-        /* Screenshot — ' (9) + I (18) */
-        combo_screenshot {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 18>;
-            bindings = <&screenshot_tool>;
-            layers = <BASE>;
-        };
-
-        /* App left — ' (9) + M (15) */
-        combo_app_left {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 15>;
-            bindings = <&alt_shift_tab>;
-            layers = <BASE>;
-        };
-
-        /* App right — ' (9) + N (16) */
-        combo_app_right {
-            timeout-ms = <50>;
-            require-prior-idle-ms = <80>;
-            key-positions = <9 16>;
-            bindings = <&alt_tab>;
-            layers = <BASE>;
-        };
-
         /* BT layer — both left thumbs (30 + 31) */
         combo_bt_momentary {
             timeout-ms = <50>;
@@ -650,7 +589,7 @@
         /* --------------------------------------------------------
          *  BASE — Colemak-DH
          * --------------------------------------------------------
-         *  Q  W  F  P  B  |  J  L  U  Y  '
+         *  Q  W  F  P  B  |  J  L  U  Y  '/SHORTCUT
          *  A  R  S  T  G  |  M  N  E  I  O
          *  Z  X  C  D  V  |  K  H  ,. ?! Tab/Win
          *   [ACC/MERGED] [SPC/Ctrl] | [ENT/Shft] [BSPC]
@@ -658,7 +597,7 @@
         base_layer {
             display-name = "Base";
             bindings = <
-                &alpha_up LS(Q) Q    &alpha_up LS(W) W    &alpha_up LS(F) F    &alpha_up LS(P) P    &alpha_up LS(B) B       &alpha_up LS(J) J    &alpha_up LS(L) L    &alpha_up LS(U) U    &alpha_up LS(Y) Y    &kp SQT
+                &alpha_up LS(Q) Q    &alpha_up LS(W) W    &alpha_up LS(F) F    &alpha_up LS(P) P    &alpha_up LS(B) B       &alpha_up LS(J) J    &alpha_up LS(L) L    &alpha_up LS(U) U    &alpha_up LS(Y) Y    &lt SHORTCUT SQT
                 &alpha_up LS(A) A    &alpha_up LS(R) R    &alpha_up LS(S) S    &alpha_up LS(T) T    &alpha_up LS(G) G       &alpha_up LS(M) M    &alpha_up LS(N) N    &alpha_up LS(E) E    &alpha_up LS(I) I    &alpha_up LS(O) O
                 &alpha_up LS(Z) Z    &alpha_up LS(X) X    &alpha_up LS(C) C    &alpha_up LS(D) D    &alpha_up LS(V) V       &alpha_up LS(K) K    &alpha_up LS(H) H    &td_comma              &sym_ht LS(N1) LS(FSLH)  &sym_ht LGUI TAB
                 &thumb_layer_accent MERGED 0              &sym_ht LCTRL SPACE                                                &sym_ht LSHIFT ENTER &kp BSPC
@@ -715,6 +654,24 @@
                 &none                &none                &none                &none                &none                   &none                &none                &none                &none                &none
                 &ht_a_crase 0 0      &ht_a_crase_uc 0 0   &none                &none                &none                   &none                &none                &out_ecirc           &none                &out_ocirc
                 &none                &none                &ht_c_cedil 0 0      &none                &none                   &none                &none                &none                &none                &none
+                &trans               &trans                                                                                  &trans               &trans
+            >;
+        };
+
+        /* --------------------------------------------------------
+         *  SHORTCUT — Media / App switching (hold apostrophe)
+         * --------------------------------------------------------
+         *  .   .   .   .   .  |  Mute Vol- Vol+ Lock  .
+         *  .   .   .   .   .  |  A+S+T A+T  .  ScrSh  .
+         *  .   .   .   .   .  |  .    .    .    .     .
+         *       [trans] [trans] | [trans] [trans]
+         * ------------------------------------------------------ */
+        shortcut_layer {
+            display-name = "Shortcut";
+            bindings = <
+                &none                &none                &none                &none                &none                   &kp C_MUTE           &kp C_VOL_DN         &kp C_VOL_UP         &lock_screen         &none
+                &none                &none                &none                &none                &none                   &alt_shift_tab       &alt_tab             &none                &screenshot_tool     &none
+                &none                &none                &none                &none                &none                   &none                &none                &none                &none                &none
                 &trans               &trans                                                                                  &trans               &trans
             >;
         };
